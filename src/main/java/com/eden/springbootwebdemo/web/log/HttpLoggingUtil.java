@@ -1,4 +1,4 @@
-package com.eden.springbootwebdemo.web;
+package com.eden.springbootwebdemo.web.log;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

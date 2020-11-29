@@ -1,4 +1,4 @@
-package com.eden.springbootwebdemo.web;
+package com.eden.springbootwebdemo.web.log;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;

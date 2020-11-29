@@ -2,6 +2,9 @@ package com.eden.springbootwebdemo.web;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.slf4j.MDC;
+
+import static com.eden.springbootwebdemo.web.traceid.TraceIdFilter.TRACE_ID;
 
 /**
  * This is Description
@@ -18,6 +21,15 @@ public class RetResult<T> {
     private String msg;
 
     private T data;
+
+    private String traceId;
+
+    public RetResult(Integer code, String msg, T data) {
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
+        this.traceId = MDC.get(TRACE_ID);
+    }
 
 
     public static <T> RetResult<T> success(T t) {

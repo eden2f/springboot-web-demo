@@ -19,8 +19,9 @@ import java.util.Random;
  * @author Eden
  * @date 2020/07/19
  */
-@RestController
 @Slf4j
+@RestController
+@RequestMapping("hello")
 public class HelloWorldController {
 
     private final Random random = new Random();

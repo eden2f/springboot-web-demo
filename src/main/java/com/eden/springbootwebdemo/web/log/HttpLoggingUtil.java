@@ -1,8 +1,6 @@
 package com.eden.springbootwebdemo.web.log;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.eden.springbootwebdemo.web.RequestLogInfo;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
@@ -22,36 +20,33 @@ import java.util.Map;
  */
 public class HttpLoggingUtil {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public static ObjectNode initByHttpServletRequest(ContentCachingRequestWrapper requestWrapper) {
-        ObjectNode rootNode = MAPPER.createObjectNode();
-        rootNode.put("costTime", System.currentTimeMillis());
-        rootNode.put("uri", requestWrapper.getRequestURI());
-        rootNode.put("clientIp", requestWrapper.getRemoteAddr());
-        rootNode.set("requestHeaders", MAPPER.valueToTree(getRequestHeaders(requestWrapper)));
-        return rootNode;
+    public static RequestLogInfo initByHttpServletRequest(ContentCachingRequestWrapper requestWrapper) {
+        RequestLogInfo requestLogInfo = new RequestLogInfo();
+        requestLogInfo.setCosTimeMillis(System.currentTimeMillis());
+        requestLogInfo.setRequestUri(requestWrapper.getRequestURI());
+        requestLogInfo.setRemoteAddr(requestWrapper.getRemoteAddr());
+        requestLogInfo.setRequestHeaders(getRequestHeaders(requestWrapper));
+        return requestLogInfo;
     }
 
-    public static void updateByHttpServletResponse(ObjectNode rootNode, ContentCachingRequestWrapper requestWrapper, ContentCachingResponseWrapper responseWrapper) throws IOException {
+    public static void updateByHttpServletResponse(RequestLogInfo requestLogInfo, ContentCachingRequestWrapper requestWrapper, ContentCachingResponseWrapper responseWrapper) throws IOException {
         String method = requestWrapper.getMethod();
-        rootNode.put("method", method);
+        requestLogInfo.setMethod(method);
         if (method.equals(RequestMethod.GET.name())) {
-            rootNode.set("request", MAPPER.valueToTree(requestWrapper.getParameterMap()));
+            requestLogInfo.setRequest(requestWrapper.getParameterMap());
         } else {
-            JsonNode newNode = MAPPER.readTree(requestWrapper.getContentAsByteArray());
-            rootNode.set("request", newNode);
+            requestLogInfo.setResponse(new String(requestWrapper.getContentAsByteArray()));
         }
-        rootNode.put("status", responseWrapper.getStatus());
-        JsonNode newNode = MAPPER.readTree(responseWrapper.getContentAsByteArray());
-        rootNode.set("response", newNode);
+        requestLogInfo.setStatus(responseWrapper.getStatus());
+        requestLogInfo.setResponse(new String(responseWrapper.getContentAsByteArray()));
         responseWrapper.copyBodyToResponse();
-        rootNode.set("responseHeaders", MAPPER.valueToTree(getResponsetHeaders(responseWrapper)));
-        rootNode.put("costTime", System.currentTimeMillis() - rootNode.get("costTime").asLong() + "ms");
+        requestLogInfo.setResponseHeaders(getResponsetHeaders(responseWrapper));
+        requestLogInfo.setCosTimeMillis(System.currentTimeMillis() - requestLogInfo.getCosTimeMillis());
     }
 
     private static Map<String, Object> getResponsetHeaders(ContentCachingResponseWrapper response) {
-        Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>(16);
         Collection<String> headerNames = response.getHeaderNames();
         for (String headerName : headerNames) {
             headers.put(headerName, response.getHeader(headerName));
@@ -60,7 +55,7 @@ public class HttpLoggingUtil {
     }
 
     private static Map<String, Object> getRequestHeaders(HttpServletRequest request) {
-        Map<String, Object> headers = new HashMap<>();
+        Map<String, Object> headers = new HashMap<>(16);
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();

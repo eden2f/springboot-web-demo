@@ -1,5 +1,7 @@
 package com.eden.springbootwebdemo.web.log;
 
+import com.alibaba.fastjson.JSON;
+import com.eden.springbootwebdemo.web.RequestLogInfo;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,14 +15,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * This is Description
+ * 全局日志打印过滤器
  *
  * @author Eden
  * @date 2020/07/19
  */
-@Component
 @Slf4j
-@WebFilter(filterName = "test", urlPatterns = "/*")
+@Component
+@WebFilter(filterName = "logFilter", urlPatterns = "/*")
 public class LogFilter implements Filter {
 
 
@@ -33,10 +35,10 @@ public class LogFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper((HttpServletRequest) request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper((HttpServletResponse) response);
-        ObjectNode rootNode = HttpLoggingUtil.initByHttpServletRequest(requestWrapper);
+        RequestLogInfo requestLogInfo = HttpLoggingUtil.initByHttpServletRequest(requestWrapper);
         chain.doFilter(requestWrapper, responseWrapper);
-        HttpLoggingUtil.updateByHttpServletResponse(rootNode, requestWrapper, responseWrapper);
-        log.info(rootNode.toString());
+        HttpLoggingUtil.updateByHttpServletResponse(requestLogInfo, requestWrapper, responseWrapper);
+        log.info(JSON.toJSONString(requestLogInfo));
     }
 
     @Override
